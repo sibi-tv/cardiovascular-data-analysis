@@ -5,6 +5,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import accuracy_score
 import statsmodels.api as sm
+from sklearn.cluster import KMeans
 
 def hypothesis_1(df: pd.DataFrame) -> dict:
     with_disease = df[df['cardio'] == 1]['ap_hi']
@@ -68,3 +69,27 @@ def hypothesis_3(df: pd.DataFrame) -> dict:
     }
 
     return hypothesis_3_result
+
+def k_means_clustering(df: pd.DataFrame) -> dict:
+    cluster_features = ['age_years', 'weight', 'height', 'ap_hi', 'ap_lo']
+    X_cluster = df[cluster_features]
+
+    scaler_cluster = StandardScaler()
+    X_cluster_scaled = scaler_cluster.fit_transform(X_cluster)
+    
+    kmeans = KMeans(n_clusters=3, random_state=42, n_init=10)
+    df['cluster'] = kmeans.fit_predict(X_cluster_scaled)
+
+    cluster_profiles = df.groupby('cluster')[cluster_features].mean().reset_index()
+    
+    disease_distribution = pd.crosstab(df['cluster'], df['cardio'], normalize='index')
+    disease_distribution = (disease_distribution[1] * 100).reset_index(name='disease_percentage')
+    
+    cluster_analysis = cluster_profiles.merge(disease_distribution, on='cluster')
+    
+    cluster_result = {
+        "finding": "Successfully identified 3 patient profiles with varying risk levels for cardiovascular disease.",
+        "analysis_by_cluster": cluster_analysis.to_dict(orient='records')
+    }
+
+    return cluster_result
