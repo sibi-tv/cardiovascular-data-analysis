@@ -4,6 +4,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import accuracy_score
+import statsmodels.api as sm
 
 def hypothesis_1(df: pd.DataFrame) -> dict:
     with_disease = df[df['cardio'] == 1]['ap_hi']
@@ -44,3 +45,26 @@ def hypothesis_2(df: pd.DataFrame) -> dict:
     }
 
     return hypothesis_2_result
+
+def hypothesis_3(df: pd.DataFrame) -> dict:
+    X_linreg = df[['age_years', 'weight', 'cholesterol']]
+    y_linreg = df['ap_hi']
+    
+    X_linreg_const = sm.add_constant(X_linreg)
+    
+    lin_model = sm.OLS(y_linreg, X_linreg_const).fit()
+    
+    coeffs_data = {
+        'predictor': lin_model.params.index.tolist(),
+        'coefficient': lin_model.params.values.tolist(),
+        'p_value': lin_model.pvalues.values.tolist()
+    }
+    
+    hypothesis_3_result = {
+        "r_squared": lin_model.rsquared,
+        "f_pvalue": lin_model.f_pvalue,
+        "conclusion": "The model is statistically significant in predicting systolic blood pressure." if lin_model.f_pvalue < 0.05 else "The model is not statistically significant.",
+        "coefficients": coeffs_data
+    }
+
+    return hypothesis_3_result
