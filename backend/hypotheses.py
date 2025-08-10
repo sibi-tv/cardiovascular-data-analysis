@@ -1,4 +1,5 @@
 import pandas as pd
+from sqlalchemy import create_engine
 from scipy.stats import ttest_ind
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
@@ -7,22 +8,44 @@ from sklearn.metrics import accuracy_score
 import statsmodels.api as sm
 from sklearn.cluster import KMeans
 
-def hypothesis_1(df: pd.DataFrame) -> dict:
-    with_disease = df[df['cardio'] == 1]['ap_hi']
-    without_disease = df[df['cardio'] == 0]['ap_hi']
+def hypothesis_1(url: str) -> dict:
+
+    engine = create_engine(url)
+    optimized_query = "SELECT avg_CVD_patient_systolic, avg_no_CVD_patient_systolic FROM database_summary"
+    optimized_subtable_query = "SELECT ap_hi, cardio FROM cleaned_cardio_data"
+
+    averages = []
+    systolic_df = pd.DataFrame() 
+
+    with engine.connect() as connection:
+        averages = pd.read_sql(optimized_query, connection).iloc[0].to_list()
+        systolic_df = pd.read_sql(optimized_subtable_query, connection)
+
+    with_disease = systolic_df[systolic_df['cardio'] == 1]['ap_hi']
+    without_disease = systolic_df[systolic_df['cardio'] == 0]['ap_hi']
     t_stat, p_value = ttest_ind(with_disease, without_disease)
     
     hypothesis_1_result = {
-        "group_with_disease_avg_bp": with_disease.mean(),
-        "group_without_disease_avg_bp": without_disease.mean(),
+        "group_with_disease_avg_bp": averages[0],
+        "group_without_disease_avg_bp": averages[1],
         "p_value": p_value,
         "conclusion": "Reject null hypothesis: Systolic BP is significantly higher in patients with CVD." if p_value < 0.05 else "Fail to reject null hypothesis."
     }
 
     return hypothesis_1_result
 
-def hypothesis_2(df: pd.DataFrame) -> dict:
-    features = ['age_years', 'gender', 'ap_hi', 'ap_lo', 'cholesterol', 'gluc']
+def hypothesis_2(url: str) -> dict:
+
+    feature_query = "SELECT age_years, gender, ap_hi, ap_lo, cholesterol, gluc, cardio FROM cleaned_cardio_data"
+    engine = create_engine(url)
+
+    df = pd.DataFrame()
+
+    with engine.connect() as connection:
+        df = pd.read_sql(feature_query, connection)
+    
+    features = [k for k in df.keys() if k != 'cardio']
+
     X = df[features]
     y = df['cardio']
     
@@ -47,8 +70,18 @@ def hypothesis_2(df: pd.DataFrame) -> dict:
 
     return hypothesis_2_result
 
-def hypothesis_3(df: pd.DataFrame) -> dict:
-    X_linreg = df[['age_years', 'weight', 'cholesterol']]
+def hypothesis_3(url: str) -> dict:
+
+    query = "SELECT age_years, weight, cholesterol, ap_hi FROM cleaned_cardio_data"
+    engine = create_engine(url)
+    df = pd.DataFrame()
+
+    with engine.connect() as connection:
+        df = pd.read_sql(query, connection)
+    
+    regressors = [k for k in df.keys() if k != 'ap_hi']
+
+    X_linreg = df[regressors]
     y_linreg = df['ap_hi']
     
     X_linreg_const = sm.add_constant(X_linreg)
@@ -70,8 +103,16 @@ def hypothesis_3(df: pd.DataFrame) -> dict:
 
     return hypothesis_3_result
 
-def k_means_clustering(df: pd.DataFrame) -> dict:
-    cluster_features = ['age_years', 'weight', 'height', 'ap_hi', 'ap_lo']
+def k_means_clustering(url: str) -> dict:
+
+    query = "SELECT age_years, weight, height, ap_hi, ap_lo, cardio FROM cleaned_cardio_data"
+    engine = create_engine(url)
+    df = pd.DataFrame()
+
+    with engine.connect() as connection:
+        df = pd.read_sql(query, connection)
+
+    cluster_features = [k for k in df.keys()]
     X_cluster = df[cluster_features]
 
     scaler_cluster = StandardScaler()
