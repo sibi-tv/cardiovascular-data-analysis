@@ -32,6 +32,8 @@ def hypothesis_1(url: str) -> dict:
         "conclusion": "Reject null hypothesis: Systolic BP is significantly higher in patients with CVD." if p_value < 0.05 else "Fail to reject null hypothesis."
     }
 
+    print(p_value)
+
     return hypothesis_1_result
 
 def hypothesis_2(url: str) -> dict:

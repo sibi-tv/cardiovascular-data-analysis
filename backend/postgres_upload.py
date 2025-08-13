@@ -21,7 +21,8 @@ def clean_data(data_frame: pd.DataFrame) -> pd.DataFrame:
     data_frame = data_frame[data_frame['ap_hi'] >= data_frame['ap_lo']]
     data_frame = data_frame[(data_frame['ap_hi'] >= 70) & (data_frame['ap_hi'] <= 250)]
     data_frame = data_frame[(data_frame['ap_lo'] >= 40) & (data_frame['ap_lo'] <= 150)]
-    print(1)
+    
+    return data_frame
 
 def upload_to_database(data_frame: pd.DataFrame):
     print(2)
@@ -33,5 +34,5 @@ def upload_to_database(data_frame: pd.DataFrame):
     except Exception as e:
         print(f"Error: {e}")
 
-clean_data(df)
+df = clean_data(df)
 upload_to_database(df)

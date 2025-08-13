@@ -51,7 +51,7 @@ DECLARE
 BEGIN
     SELECT age_years, ap_hi, cholesterol
     INTO patient_age, patient_ap_hi, patient_cholesterol
-    FROM cardio_data_cleaned
+    FROM cleaned_cardio_data
     WHERE id = patient_id;
 
     IF patient_age > 55 THEN score := score + 1; END IF;
@@ -72,7 +72,7 @@ $$;
 
 def run_queries():
     with engine.connect() as connection:
-        connection.execute(text(summary_query))
+        #connection.execute(text(summary_query))
         connection.execute(text(calculate_risk_score))
         connection.commit()
 
