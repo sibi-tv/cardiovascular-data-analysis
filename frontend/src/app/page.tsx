@@ -45,24 +45,24 @@ export default function Home() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  // useEffect(() => {
     
-    const fetchData = async () => {
-      try {
-        console.log("heyyyy")
-        const response = await axios.get('http://127.0.0.1:8000/api/hypothesis-1');
-        console.log("hiiiiii")
-        setData(response.data);
-      } catch (err) {
-        setError('Failed to fetch data from the API. Is the backend server running?');
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
+  //   const fetchData = async () => {
+  //     try {
+  //       console.log("heyyyy")
+  //       const response = await axios.get('http://127.0.0.1:8000/api/hypothesis-1');
+  //       console.log("hiiiiii")
+  //       setData(response.data);
+  //     } catch (err) {
+  //       setError('Failed to fetch data from the API. Is the backend server running?');
+  //       console.error(err);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
 
-    fetchData();
-  }, []); 
+  //   fetchData();
+  // }, []); 
 
   if (loading) {
     return <main className="flex min-h-screen flex-col items-center p-24"><p>Loading analysis...</p></main>;
