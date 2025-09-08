@@ -87,7 +87,7 @@ export default function ChartCard({
                 dataKey={dataKey}
                 position="top"
                 style={{ fill: "#111827", fontWeight: 600, fontSize: 13 }}
-                formatter={(val: number) => `${val}`}
+                formatter={(val: unknown) => `${val as number}`}
               />
               {data.map((_, index) => (
                 <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
