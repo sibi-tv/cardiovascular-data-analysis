@@ -4,7 +4,7 @@ backend/cardio_train.csv
 backend/*.txt
 
 */__pycache__
-*/public
+
 
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
