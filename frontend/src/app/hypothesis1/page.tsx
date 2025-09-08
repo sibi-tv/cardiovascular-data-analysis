@@ -1,83 +1,67 @@
-'use client';
-import { useEffect, useState } from 'react';
-import axios from 'axios';
-import { Lightbulb } from 'lucide-react';
-
-interface Hypo1Data {
-  group_with_disease_avg_bp: number;
-  group_without_disease_avg_bp: number;
-  conclusion: string;
-  p_value: number;
-}
+"use client";
+import { useEffect, useState } from "react";
+import { Lightbulb } from "lucide-react";
+import { getHypothesis1 } from "../../lib/api";
+import StatCard from "../components/cards/StatCard";
+import ResultCard from "../components/cards/ResultCard";
+import BarChart from "../components/charts/BarChart";
+import { Hypo1Data } from "../../types/analysis";
 
 export default function Hypothesis1Page() {
   const [data, setData] = useState<Hypo1Data | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    axios
-      .get('http://127.0.0.1:8000/api/hypothesis-1')
-      .then((response) => setData(response.data))
-      .finally(() => setLoading(false));
+    getHypothesis1().then((d) => setData(d)).finally(() => setLoading(false));
   }, []);
 
-  if (loading)
-    return <p className="text-center text-gray-500 italic">Loading Hypothesis 1 data...</p>;
-  if (!data) return <p className="text-center text-red-500">No data found.</p>;
+  if (loading) return <p className="text-center text-slate-500 italic">Loading...</p>;
+  if (!data) return <p className="text-center text-red-500">No data.</p>;
 
-  const maxBP = Math.max(
-    data.group_with_disease_avg_bp,
-    data.group_without_disease_avg_bp
-  );
-  const scaleHeight = (bp: number) => `${(bp / maxBP) * 200}px`;
+  const labels = ["No CVD", "Has CVD"];
+  const values = [data.group_without_disease_avg_bp, data.group_with_disease_avg_bp];
 
   return (
-    <div className="bg-white p-8 rounded-xl shadow-lg max-w-xl mx-auto">
-      <h1 className="text-3xl font-bold mb-4 text-gray-800">
-        Hypothesis 1: Systolic Blood Pressure Impact
-      </h1>
-
-      {/* Goal Card */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 flex items-start gap-3">
-        <Lightbulb className="text-blue-600 w-6 h-6 flex-shrink-0 mt-0.5" />
-        <p className="text-gray-700">
-          Goal: Determine if systolic blood pressure is significantly different between
-          people with and without cardiovascular disease (CVD).
-        </p>
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <StatCard
+          title="Systolic BP (No CVD)"
+          value={`${data.group_without_disease_avg_bp.toFixed(1)} mmHg`}
+          subtitle="Average among no-CVD group"
+        />
+        <StatCard
+          title="Systolic BP (Has CVD)"
+          value={`${data.group_with_disease_avg_bp.toFixed(1)} mmHg`}
+          subtitle="Average among CVD group"
+          badge={<span className="text-sm font-medium bg-red-100 px-2 py-1 rounded">High</span>}
+        />
+        <StatCard
+          title="P-value"
+          value={data.p_value < 0.001 ? "< 0.001" : data.p_value.toFixed(3)}
+          subtitle={data.p_value < 0.05 ? "Statistically significant" : "Not significant"}
+        />
       </div>
 
-      <p className="mb-6 text-gray-600 leading-relaxed">{data.conclusion}</p>
-
-      <div className="flex justify-around items-end gap-8">
-        <div className="text-center group">
-          <div
-            className="bg-blue-300 w-20 rounded-t-lg flex items-end justify-center transition-transform duration-200 group-hover:scale-105"
-            style={{ height: scaleHeight(data.group_without_disease_avg_bp) }}
-          >
-            <span className="font-bold text-lg text-blue-900 mb-2">
-              {data.group_without_disease_avg_bp.toFixed(2)}
-            </span>
-          </div>
-          <p className="mt-2 font-medium text-gray-700">No CVD</p>
+      <ResultCard title="Summary / Conclusion">
+        <div className="flex items-start gap-3">
+          <Lightbulb className="w-5 h-5 text-yellow-600 mt-1" />
+          <p className="text-slate-700">{data.conclusion}</p>
         </div>
+      </ResultCard>
 
-        <div className="text-center group">
-          <div
-            className="bg-red-300 w-20 rounded-t-lg flex items-end justify-center transition-transform duration-200 group-hover:scale-105"
-            style={{ height: scaleHeight(data.group_with_disease_avg_bp) }}
-          >
-            <span className="font-bold text-lg text-red-900 mb-2">
-              {data.group_with_disease_avg_bp.toFixed(2)}
-            </span>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <ResultCard title="Comparison Chart">
+          <div className="h-48">
+            <BarChart labels={labels} values={values} />
           </div>
-          <p className="mt-2 font-medium text-gray-700">Has CVD</p>
-        </div>
-      </div>
+        </ResultCard>
 
-      <div className="mt-6 flex justify-center">
-        <span className="bg-gray-100 text-gray-600 text-sm font-medium px-4 py-1 rounded-full shadow-sm">
-          P-Value: &lt; 0.001
-        </span>
+        <ResultCard title="Interpretation">
+          <p className="text-slate-600">
+            The mean systolic blood pressure is higher in the group with CVD. The low p-value
+            indicates this difference is unlikely due to chance.
+          </p>
+        </ResultCard>
       </div>
     </div>
   );
