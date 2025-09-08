@@ -1,68 +1,76 @@
 "use client";
+
 import { useEffect, useState } from "react";
-import { Lightbulb } from "lucide-react";
-import { getHypothesis1 } from "../../lib/api";
-import StatCard from "../components/cards/StatCard";
-import ResultCard from "../components/cards/ResultCard";
-import BarChart from "../components/charts/BarChart";
-import { Hypo1Data } from "../../types/analysis";
+import { getHypothesis1 } from "@/lib/api";
+import StatCard from "@/app/components/cards/StatCard";
+import ChartCard from "@/app/components/charts/ChartCard";
+
+interface Hypothesis1Data {
+  group_with_disease_avg_bp: number;
+  group_without_disease_avg_bp: number;
+  p_value: number;
+  conclusion: string;
+}
 
 export default function Hypothesis1Page() {
-  const [data, setData] = useState<Hypo1Data | null>(null);
+  const [data, setData] = useState<Hypothesis1Data | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getHypothesis1().then((d) => setData(d)).finally(() => setLoading(false));
+    getHypothesis1()
+      .then((res) => setData(res))
+      .catch(console.error)
+      .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <p className="text-center text-slate-500 italic">Loading...</p>;
-  if (!data) return <p className="text-center text-red-500">No data.</p>;
+  if (loading) {
+    return <p className="text-gray-500">Loading results…</p>;
+  }
 
-  const labels = ["No CVD", "Has CVD"];
-  const values = [data.group_without_disease_avg_bp, data.group_with_disease_avg_bp];
+  if (!data) {
+    return <p className="text-red-500">Failed to load data.</p>;
+  }
+
+  // Transform backend response → chart data format
+  const chartData = [
+    { group: "With Disease", value: data.group_with_disease_avg_bp },
+    { group: "Without Disease", value: data.group_without_disease_avg_bp },
+  ];
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div className="grid gap-6">
+      {/* Two-column layout for the first two stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <StatCard
-          title="Systolic BP (No CVD)"
-          value={`${data.group_without_disease_avg_bp.toFixed(1)} mmHg`}
-          subtitle="Average among no-CVD group"
+          title="Avg BP (With Disease)"
+          value={data.group_with_disease_avg_bp}
+          subtitle="Mean systolic blood pressure of patients with CVD"
         />
         <StatCard
-          title="Systolic BP (Has CVD)"
-          value={`${data.group_with_disease_avg_bp.toFixed(1)} mmHg`}
-          subtitle="Average among CVD group"
-          badge={<span className="text-sm font-medium bg-red-100 px-2 py-1 rounded">High</span>}
-        />
-        <StatCard
-          title="P-value"
-          value={data.p_value < 0.001 ? "< 0.001" : data.p_value.toFixed(3)}
-          subtitle={data.p_value < 0.05 ? "Statistically significant" : "Not significant"}
+          title="Avg BP (Without Disease)"
+          value={data.group_without_disease_avg_bp}
+          subtitle="Mean systolic blood pressure of patients without CVD"
         />
       </div>
 
-      <ResultCard title="Summary / Conclusion">
-        <div className="flex items-start gap-3">
-          <Lightbulb className="w-5 h-5 text-yellow-600 mt-1" />
-          <p className="text-slate-700">{data.conclusion}</p>
-        </div>
-      </ResultCard>
+      <StatCard
+        title="P-Value"
+        value={data.p_value > 0.0001 ? data.p_value : "< 0.0001"}
+        subtitle="Statistical significance level"
+      />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <ResultCard title="Comparison Chart">
-          <div className="h-48">
-            <BarChart labels={labels} values={values} />
-          </div>
-        </ResultCard>
-
-        <ResultCard title="Interpretation">
-          <p className="text-slate-600">
-            The mean systolic blood pressure is higher in the group with CVD. The low p-value
-            indicates this difference is unlikely due to chance.
-          </p>
-        </ResultCard>
+      <div className="rounded-lg border bg-white p-6 shadow-sm">
+        <h2 className="text-xl font-semibold text-gray-800 mb-2">Conclusion</h2>
+        <p className="text-gray-600">{data.conclusion}</p>
       </div>
+
+      <ChartCard
+        title="Average Systolic BP by Group"
+        data={chartData}
+        dataKey="value"
+        xKey="group"
+        colors={["#ef4444", "#3b82f6"]}
+      />
     </div>
   );
 }
