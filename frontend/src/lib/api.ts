@@ -22,7 +22,7 @@ export const getClustering = async () => {
   return data;
 };
 
-export const calculateRisk = async (payload: any) => {
+export const calculateRisk = async (payload: unknown) => {
   const { data } = await axios.post(`${API_BASE}/calculate-risk`, payload);
   return data;
 };

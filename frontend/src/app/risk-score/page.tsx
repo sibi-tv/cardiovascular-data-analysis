@@ -9,7 +9,7 @@ export default function RiskScorePage() {
   const [risk, setRisk] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
 
-  function onChange(e: any) {
+  function onChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
     const { name, value } = e.target;
     setForm(prev => ({ ...prev, [name]: Number(value) }));
   }

@@ -114,7 +114,8 @@ def k_means_clustering(url: str) -> dict:
     with engine.connect() as connection:
         df = pd.read_sql(query, connection)
 
-    cluster_features = [k for k in df.keys()]
+    df["bmi"] = df["weight"] / ((df["height"]/100) ** 2)
+    cluster_features = [k for k in df.keys() if k != 'cardio']
     X_cluster = df[cluster_features]
 
     scaler_cluster = StandardScaler()
