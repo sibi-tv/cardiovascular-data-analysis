@@ -6,6 +6,7 @@ interface StatCardProps {
   subtitle?: string;
   icon?: ReactNode;
   color?: "blue" | "green" | "indigo" | "yellow" | "red";
+  className?: string; // 👈 allow extra styles
 }
 
 export default function StatCard({
@@ -14,6 +15,7 @@ export default function StatCard({
   subtitle,
   icon,
   color = "blue",
+  className = "",
 }: StatCardProps) {
   const colors: Record<string, string> = {
     blue: "bg-blue-50 border-blue-200 text-blue-600",
@@ -25,7 +27,7 @@ export default function StatCard({
 
   return (
     <div
-      className={`rounded-lg border px-6 py-4 text-center shadow-sm hover:shadow-md transition ${colors[color]}`}
+      className={`rounded-lg border px-6 py-4 text-center shadow-sm hover:shadow-md transition ${colors[color]} ${className}`}
     >
       {icon && <div className="flex justify-center mb-2">{icon}</div>}
       <p className="text-lg font-medium text-gray-700">{title}</p>
