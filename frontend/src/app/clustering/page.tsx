@@ -9,7 +9,8 @@ interface ClusterAnalysis {
   weight: number;
   height: number;
   ap_hi: number;
-  ap_lo: number; 
+  ap_lo: number;
+  bmi: number; 
   disease_percentage: number;
 }
 
@@ -73,8 +74,12 @@ export default function Hypothesis1Page() {
                           className={`h-4 rounded-full ${
                             cluster.disease_percentage > 86
                               ? 'bg-purple-800'
-                              : cluster.disease_percentage > 30
+                              : cluster.disease_percentage > 70
+                              ? 'bg-rose-500'
+                              : cluster.disease_percentage > 50
                               ? 'bg-orange-500'
+                              : cluster.disease_percentage > 30 
+                              ? 'bg-yellow-300'
                               : 'bg-green-500'
                           }`}
                           style={{ width: `${cluster.disease_percentage}%` }}
@@ -95,6 +100,7 @@ export default function Hypothesis1Page() {
                       <th className="py-2 px-3 border-b text-left">Profile</th>
                       <th className="py-2 px-3 border-b text-left">Age</th>
                       <th className="py-2 px-3 border-b text-left">Weight</th>
+                      <th className="py-2 px-3 border-b text-left">BMI</th>
                       <th className="py-2 px-3 border-b text-left">Systolic BP</th>
                     </tr>
                   </thead>
@@ -104,6 +110,7 @@ export default function Hypothesis1Page() {
                         <td className="py-2 px-3 border-b font-bold">Cluster {cluster.cluster}</td>
                         <td className="py-2 px-3 border-b">{cluster.age_years.toFixed(1)}</td>
                         <td className="py-2 px-3 border-b">{cluster.weight.toFixed(1)}</td>
+                        <td className="py-2 px-3 border-b">{cluster.bmi.toFixed(1)}</td>
                         <td className="py-2 px-3 border-b">{cluster.ap_hi.toFixed(1)}</td>
                       </tr>
                     ))}
