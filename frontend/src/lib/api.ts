@@ -2,7 +2,7 @@ import axios from "axios";
 
 // const API_BASE = "http://127.0.0.1:8000/api";
 // const API_BASE = "http://0.0.0.0:8000/api";
-const API_BASE = "http://cvd-backend-env.eba-yubsbd7m.us-east-1.elasticbeanstalk.com/api";
+const API_BASE = "/api";
 
 export const getHypothesis1 = async () => {
   const { data } = await axios.get(`${API_BASE}/hypothesis-1`);
