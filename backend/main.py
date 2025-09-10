@@ -46,6 +46,10 @@ class RiskScoreInput(BaseModel):
     cholesterol: int
 
 
+@app.get("/")
+def health_check():
+    return {"status": "ok"}
+
 @app.get("/api/hypothesis-1")
 def get_hypo_1():
 
