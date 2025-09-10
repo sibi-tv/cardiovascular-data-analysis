@@ -12,8 +12,6 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  ScatterChart,
-  Scatter,
   Cell,
   RadarChart,
   PolarGrid,
@@ -112,7 +110,7 @@ export default function ClusteringPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-200 to-emerald-100 p-8">
       <div className="max-w-7xl mx-auto space-y-10">
-        {/* Header Section */}
+        
         <div className="text-center space-y-4">
           <div className="inline-flex items-center gap-3 bg-white px-6 py-3 rounded-2xl shadow-md border border-gray-100">
             <Layers className="h-8 w-8 text-blue-600" />
@@ -126,7 +124,7 @@ export default function ClusteringPage() {
           </p>
         </div>
 
-        {/* Key Insights Banner */}
+        
         <div className="rounded-3xl p-8 shadow-lg border-2 bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
           <div className="flex items-start gap-6">
             <div className="p-4 rounded-2xl bg-blue-100">

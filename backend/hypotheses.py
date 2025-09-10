@@ -18,24 +18,23 @@ def hypothesis_1(url: str) -> dict:
     with engine.connect() as connection:
         summary = pd.read_sql("SELECT * FROM test_summary", connection).iloc[0]
 
-    # Extract values
+
     n1, mean1, var1 = summary["n_cvd"], summary["mean_cvd"], summary["var_cvd"]
     n2, mean2, var2 = summary["n_no_cvd"], summary["mean_no_cvd"], summary["var_no_cvd"]
 
-    # Welch’s t-test
+
     se = ((var1 / n1) + (var2 / n2)) ** 0.5
     t_stat = (mean1 - mean2) / se
 
-    # Welch–Satterthwaite degrees of freedom
+
     df_num = (var1/n1 + var2/n2) ** 2
     df_den = ((var1/n1)**2 / (n1 - 1)) + ((var2/n2)**2 / (n2 - 1))
     df = df_num / df_den
 
-    # One-sided p-value (is mean1 > mean2?)
+
     p_value = 1 - t.cdf(t_stat, df)
 
-    # Confidence interval for the difference (mean1 - mean2)
-    # Using 95% confidence interval (two-tailed)
+
     alpha = 0.05
     t_critical = t.ppf(1 - alpha/2, df)
     difference = mean1 - mean2
@@ -43,8 +42,7 @@ def hypothesis_1(url: str) -> dict:
     ci_lower = difference - margin_of_error
     ci_upper = difference + margin_of_error
 
-    # Effect size (Cohen's d for unequal variances - Hedges' g)
-    # Pooled standard deviation for unequal sample sizes and variances
+
     pooled_sd = ((var1 * (n1 - 1) + var2 * (n2 - 1)) / (n1 + n2 - 2)) ** 0.5
     cohens_d = difference / pooled_sd
 
@@ -89,30 +87,30 @@ def hypothesis_2(url: str) -> dict:
 
     baseline_accuracy = y.value_counts().max() / len(y)
     
-    # Stratified split to maintain class balance
+    
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.2, random_state=42, stratify=y
     )
     
-    # Scale the features
+    
     scaler = StandardScaler()
     X_train_scaled = scaler.fit_transform(X_train)
     X_test_scaled = scaler.transform(X_test)
     
-    # Create and fit model
+    
     model = LogisticRegression(random_state=42)
     model.fit(X_train_scaled, y_train)
     
-    # Cross-validation for robust performance estimation
+    
     cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
     cv_scores = cross_val_score(model, X_train_scaled, y_train, cv=cv, scoring='accuracy')
     mean_cv_accuracy = cv_scores.mean()
     cv_std = cv_scores.std()
     
-    # Statistical significance test
+    
     t_stat, p_value = ttest_1samp(cv_scores, baseline_accuracy)
     
-    # Test set performance
+    
     y_pred = model.predict(X_test_scaled)
     y_pred_proba = model.predict_proba(X_test_scaled)[:, 1]
     
@@ -125,16 +123,16 @@ def hypothesis_2(url: str) -> dict:
         margin = z * np.sqrt((accuracy * (1 - accuracy)) / n)
         return (accuracy - margin, accuracy + margin)
     
-    # Confidence intervals
+    
     acc_ci = accuracy_confidence_interval(test_accuracy, len(y_test))
     
-    # Determine statistical significance
+    
     is_significant = p_value < 0.05 and acc_ci[0] > baseline_accuracy
 
     coefficients = pd.DataFrame(model.coef_[0], features, columns=['Coefficient'])
     most_important_features = coefficients.abs().sort_values(by='Coefficient', ascending=False).head(3)
 
-    # Create list of dictionaries with name and coefficient magnitude
+    
     most_important_predictors = [
         {
             "name": feature,
@@ -156,58 +154,37 @@ def hypothesis_2(url: str) -> dict:
         "most_important_predictors": most_important_predictors
     }
         
-    # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-    # scaler = StandardScaler()
-    # X_train_scaled = scaler.fit_transform(X_train)
-    # X_test_scaled = scaler.transform(X_test)
     
-    # model = LogisticRegression()
-    # model.fit(X_train_scaled, y_train)
-    
-    # y_pred = model.predict(X_test_scaled)
-    # accuracy = accuracy_score(y_test, y_pred)
-    
-    # coefficients = pd.DataFrame(model.coef_[0], features, columns=['Coefficient'])
-    # most_important_features = coefficients.abs().sort_values(by='Coefficient', ascending=False).index.tolist()
-
-    # hypothesis_2_result = {
-    #     "model_accuracy": accuracy,
-    #     "most_important_predictors": most_important_features[:3]
-    # }
-
-    # return hypothesis_2_result
 
 
 def hypothesis_3(url: str) -> dict:
     import numpy as np
     
     query = "SELECT age_years, weight, cholesterol, height, gender, smoke, ap_lo, ap_hi FROM cleaned_cardio_data"
-    # query = "SELECT age_years, weight, cholesterol, height, gender, smoke, alco, gluc, ap_hi FROM cleaned_cardio_data"
+    
     engine = create_engine(url)
     df = pd.DataFrame()
 
     with engine.connect() as connection:
         df = pd.read_sql(query, connection)
     
-    # Remove any rows with missing values
+    
     df = df.dropna()
     
     regressors = [k for k in df.keys() if k != 'ap_hi']
     X_linreg = df[regressors]
     y_linreg = df['ap_hi']
     
-    # Add constant term for intercept
+   
     X_linreg_const = sm.add_constant(X_linreg)
     
-    # Fit the model
+   
     lin_model = sm.OLS(y_linreg, X_linreg_const).fit()
+   
+    conf_int = lin_model.conf_int(alpha=0.05)  
     
-    # Calculate confidence intervals for coefficients
-    conf_int = lin_model.conf_int(alpha=0.05)  # 95% confidence intervals
-    
-    # Helper function to convert numpy/pandas types to Python native types
     def to_python_type(value):
-        if hasattr(value, 'item'):  # numpy scalar
+        if hasattr(value, 'item'):  
             return value.item()
         elif isinstance(value, np.integer):
             return int(value)
@@ -220,7 +197,7 @@ def hypothesis_3(url: str) -> dict:
         else:
             return value
     
-    # Prepare coefficient data with explicit type conversion
+
     coeffs_data = []
     for i, (coef_name, coef_val) in enumerate(lin_model.params.items()):
         is_sig = lin_model.pvalues.iloc[i] < 0.05
@@ -235,16 +212,16 @@ def hypothesis_3(url: str) -> dict:
             'is_significant': to_python_type(is_sig)
         })
     
-    # Calculate additional metrics with type conversion
+
     n = len(df)
-    k = len(regressors)  # number of predictors (excluding intercept)
+    k = len(regressors)  
     adjusted_r_squared = 1 - (1 - lin_model.rsquared) * (n - 1) / (n - k - 1)
     
-    # Root Mean Square Error
+
     residuals = lin_model.resid
     rmse = np.sqrt(np.mean(residuals**2))
     
-    # Count significant predictors
+
     significant_count = sum(1 for coef in coeffs_data if coef['is_significant'])
     
     hypothesis_3_result = {
@@ -253,17 +230,17 @@ def hypothesis_3(url: str) -> dict:
         "sample_size": int(n),
         "num_predictors": int(k),
         
-        # Model fit statistics with explicit type conversion
+
         "r_squared": to_python_type(lin_model.rsquared),
         "adjusted_r_squared": to_python_type(adjusted_r_squared),
         "f_statistic": to_python_type(lin_model.fvalue),
         "f_pvalue": to_python_type(lin_model.f_pvalue),
         "rmse": to_python_type(rmse),
         
-        # Individual coefficient results
+
         "coefficients": coeffs_data,
         
-        # Overall conclusion with explicit boolean conversion
+
         "model_significant": to_python_type(lin_model.f_pvalue < 0.05),
         "conclusion": (
             f"The overall model is statistically significant (F = {float(lin_model.fvalue):.3f}, p < 0.001), "

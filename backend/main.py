@@ -28,7 +28,8 @@ engine = create_engine(url)
 app = FastAPI()
 
 origins= [
-    "http://localhost:3000"
+    "http://localhost:3000",
+    "https://cardiovascular-data-analysis.netlify.app"
 ]
 
 app.add_middleware(
