@@ -70,10 +70,27 @@ $$;
 
 """
 
+test_summary = """
+
+CREATE OR REPLACE VIEW public.test_summary
+AS
+SELECT
+    COUNT(*) FILTER (WHERE cardio = 1) AS n_cvd,
+    AVG(ap_hi) FILTER (WHERE cardio = 1) AS mean_cvd,
+    VAR_SAMP(ap_hi) FILTER (WHERE cardio = 1) AS var_cvd,
+
+    COUNT(*) FILTER (WHERE cardio = 0) AS n_no_cvd,
+    AVG(ap_hi) FILTER (WHERE cardio = 0) AS mean_no_cvd,
+    VAR_SAMP(ap_hi) FILTER (WHERE cardio = 0) AS var_no_cvd
+FROM cleaned_cardio_data
+WITH SECURITY INVOKER;
+
+"""
+
 def run_queries():
     with engine.connect() as connection:
         #connection.execute(text(summary_query))
-        connection.execute(text(calculate_risk_score))
+        connection.execute(text(test_summary))
         connection.commit()
 
 run_queries()

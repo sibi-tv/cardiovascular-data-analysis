@@ -1,16 +1,24 @@
-export default function ResultCard({
-  title,
-  children,
-  className = "",
-}: {
+import React from 'react';
+
+interface ResultCardProps {
   title: string;
   children: React.ReactNode;
-  className?: string; // 👈 allow extra styles
-}) {
+  className?: string;
+}
+
+const ResultCard: React.FC<ResultCardProps> = ({ 
+  title, 
+  children, 
+  className = "" 
+}) => {
   return (
-    <div className={`bg-white border rounded-lg p-5 shadow-sm ${className}`}>
-      <h3 className="text-lg font-semibold mb-3">{title}</h3>
-      <div>{children}</div>
+    <div className={`bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden ${className}`}>
+      <div className="px-6 py-4 bg-gradient-to-r from-slate-50 to-gray-50 border-b border-gray-100">
+        <h3 className="text-lg font-bold text-gray-900">{title}</h3>
+      </div>
+      <div className="p-6">{children}</div>
     </div>
   );
-}
+};
+
+export default ResultCard;
