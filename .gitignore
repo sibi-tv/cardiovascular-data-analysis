@@ -1,7 +1,6 @@
 backend/venv
 backend/.env
 backend/cardio_train.csv
-backend/*.txt
 
 */__pycache__
 
